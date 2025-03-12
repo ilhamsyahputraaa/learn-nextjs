@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  name           String
+  email          String   @unique
+  imageUrl       String?
+  hashedPassword String
+  ipAddress      String   
+  role           UserRole @default(USER)
+  subscription   Subscription?
+  freeTrialUsed  Boolean  @default(false)
+  freeTrialEnds  DateTime?
+  totalGenerates Int      @default(0)
+  createdAt      DateTime @default(now())
+  secondUsed     Int
+
+  @@unique([ipAddress, email])
+  Post Post[]
+}
+
+model Subscription {
+  id            String    @id @default(cuid())
+  user          User      @relation(fields: [userId], references: [id]) 
+  userId        String    @unique
+  type          SubscriptionType
+  expiresAt     DateTime
+  maxMinutes    Int
+  price         Int
+  createdAt     DateTime @default(now())
+}
+
+
+model Post {
+  id                String   @id @default(cuid())
+  user              User     @relation(fields: [userId], references: [id])
+  userId            String
+  slug              String   @unique
+  text              String
+  voice             String
+  duration          Int
+  language          String
+  prompt            String
+  voiceConditioning Int
+  temperature       Int
+  createdAt         DateTime @default(now())
+
+  @@index([slug])
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum SubscriptionType {
+  FREE_TRIAL
+  TYPE_A
+  TYPE_B
+  TYPE_C
+}
+
+
